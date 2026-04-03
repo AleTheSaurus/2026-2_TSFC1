@@ -9,8 +9,8 @@
 # donde `T` es el tipo de *ambos* campos.
 #
 struct Dual
-    fun :: Float64
-    der :: Float64
+    fun::Float64
+    der::Float64
 end
 
 # b. Sobrecarguen las operaciones aritméticas (en Base) de tal manera que cuando involucren `Dual`es den el resultado correcto.
@@ -42,6 +42,7 @@ end
 # c. Definan un método específico para crear duales (constructor externo), a partir de
 # un sólo valor (en lugar de los dos requeridos). Esto corresponderá a
 # $\mathbb{D}_{x_0}c = (c, 0)$, donde $c$ es una constante (real).
+
 function D(a::Real)
     c = Dual(a,0.0)
     return c
@@ -52,29 +53,89 @@ end
 # NOTA: Este ejercicio lo pueden hacer escribiendo todos los métodos, uno a uno. Otra
 # opción es usar `promote` y `convert` para definir reglas de promoción y conversión;
 # la documentación de Julia tiene más información sobre esto.
-#
+
+import Base: convert
+convert(::Type{Dual}, x::T) where {T<:Real} = D(x)
+
+import Base: +
++(a::Dual, b::Real) = +(a, convert(Dual, b))
++(a::Real, b::Dual) = +(convert(Dual, a), b)
+import Base: -
+-(a::Dual, b::Real) = -(a, convert(Dual, b))
+-(a::Real, b::Dual) = -(convert(Dual, a), b)
+import Base: *
+*(a::Dual, b::Real) = *(a, convert(Dual, b))
+*(a::Real, b::Dual) = *(convert(Dual, a), b)
+import Base: /
+/(a::Dual, b::Real) = /(a, convert(Dual, b))
+/(a::Real, b::Dual) = /(convert(Dual, a), b)
+
+
 # e. Definan las funciones `fun` y `der` que, al ser aplicadas a un `Dual` devuelven
 # la parte que corresponde a la función y la parte que corresponde a la derivada
 # del `Dual`, respectivamente.
 
-# Función fun
+# Función fun, es la parte real
 
 function fun(a::Dual)
-    
-    return
+    return print(a.fun)
 end
 
-# Función der
+# Función der, corresponde a la parte epsilon
 
 function der(a::Dual)
-    
-    return
+    return print(a.der)
 end
 
 # f. Incluyan varios casos (propuestos por ustedes mismos) donde se *compruebe*
 # que lo que
 # implementaron da el resultado que debería ser. Para esto, pueden usar la librería
 # estándard [`Test`](https://docs.julialang.org/en/v1/stdlib/Test/) de Julia.
+
+# Creación del tipo Dual 
+x = Dual(1.5,3.0)
+println(typeof(x))
+
+#Operaciones aritmeticas con duales
+y = Dual(2.3,2)
+println(x+y)      #suma
+println(typeof(x+y))
+println(x-y)      #resta
+println(typeof(x+y))
+println(x*y)      #multiplicación
+println(typeof(x*y))
+println(x/y)      #división
+println(typeof(x/y))
+
+#De reales a duales
+d = D(5)
+println(d)
+print(typeof(d))
+
+#Extensión de operaciones a Dual-Real y Real-Dual
+println(5+Dual(3,2))            #suma 
+println(typeof(5+Dual(3,2)))
+println(Dual(3,2)+5)
+println(typeof(Dual(3,2)+5))
+
+println(5-Dual(3,2))            #resta
+println(typeof(5-Dual(3,2)))
+println(Dual(3,2)-5)
+println(typeof(Dual(3,2)-5))
+
+println(5*Dual(3,2))            #multiplicación 
+println(typeof(5*Dual(3,2)))
+println(Dual(3,2)*5)
+println(typeof(Dual(3,2)*5))
+
+println(5/Dual(3,2))            #división
+println(typeof(5/Dual(3,2)))
+println(Dual(3,2)/5)
+println(typeof(Dual(3,2)/5))
+
+#Funciones fun y der 
+fun(x)
+der(x)
 
 # ## Ejercicio 2
 #
