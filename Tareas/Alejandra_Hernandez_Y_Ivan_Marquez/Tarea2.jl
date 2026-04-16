@@ -8,12 +8,45 @@
 # aunque pueden *osar* a implementar el caso paramétrico `Dual{T <: Real}`,
 # donde `T` es el tipo de *ambos* campos.
 #
+struct Dual
+    fun :: Float64
+    der :: Float64
+end
+
 # b. Sobrecarguen las operaciones aritméticas (en Base) de tal manera que cuando involucren `Dual`es den el resultado correcto.
-#
+
+#La suma
+function Base.:+(a::Dual, b::Dual)
+	c = Dual(a.fun + b.fun, a.der + b.der)
+    return c
+end
+
+# La resta
+function Base.:-(a::Dual, b::Dual)
+	c = Dual(a.fun - b.fun, a.der-b.der)
+    return c
+end
+
+# La multiplicación
+function Base.:*(a::Dual, b::Dual)
+    c = Dual(a.fun * b.fun, (a.fun * b.der) + (a.der * b.fun))
+    return c
+end
+
+# La división
+function Base.:/(a::Dual, b::Dual)
+    @assert b.fun != 0 "La división no está definida para un denominador sin parte real" 
+    c = Dual(a.fun / b.fun, ((a.der * b.fun) - (a.fun * b.der))/((b.fun)^2))
+end
+
 # c. Definan un método específico para crear duales (constructor externo), a partir de
 # un sólo valor (en lugar de los dos requeridos). Esto corresponderá a
 # $\mathbb{D}_{x_0}c = (c, 0)$, donde $c$ es una constante (real).
-#
+function D(a::Real)
+    c = Dual(a,0.0)
+    return c
+end
+
 # d. Extiendan los métodos que permitan sumar/restar y multiplicar/dividir un
 # número (`::Real`) y un `::Dual`. (Recuerden que ciertas operaciones son conmutativas!).
 # NOTA: Este ejercicio lo pueden hacer escribiendo todos los métodos, uno a uno. Otra
@@ -23,7 +56,21 @@
 # e. Definan las funciones `fun` y `der` que, al ser aplicadas a un `Dual` devuelven
 # la parte que corresponde a la función y la parte que corresponde a la derivada
 # del `Dual`, respectivamente.
-#
+
+# Función fun
+
+function fun(a::Dual)
+    
+    return
+end
+
+# Función der
+
+function der(a::Dual)
+    
+    return
+end
+
 # f. Incluyan varios casos (propuestos por ustedes mismos) donde se *compruebe*
 # que lo que
 # implementaron da el resultado que debería ser. Para esto, pueden usar la librería
