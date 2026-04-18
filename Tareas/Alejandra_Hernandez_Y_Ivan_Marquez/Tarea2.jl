@@ -78,13 +78,13 @@ import Base: /
 # Función fun, es la parte real
 
 function fun(a::Dual)
-    return print(a.fun)
+    return a.fun
 end
 
 # Función der, corresponde a la parte epsilon
 
 function der(a::Dual)
-    return print(a.der)
+    return a.der
 end
 
 # f. Incluyan varios casos (propuestos por ustedes mismos) donde se *compruebe*
@@ -145,6 +145,41 @@ der(x)
 # ```math
 # f(x) = \frac{3x^2-8x+1}{7x^3-1}.
 # ```
+
+#CREANDO EL DUAL x+1
+
+function dual(x)
+    """
+    Se define el dual de la identidad; se usa la estructura Dual, y en la segunda entrada, se coloca la derivada de la identidad. 
+    """
+    return Dual(x,1)
+end
+
+println(dual(5))  #El resultado de la función corresponde con lo esperado
+
+# OBTENIENDO LA DERIVADA DE LA FUNCIÓN 
+
+function Df(x)
+    """
+    Esta función es f(x) pero tomando a dual(x) como argumento 
+    """
+    return ((3*dual(x)*dual(x))-(8*dual(x))+1)/((7*dual(x)*dual(x)*dual(x))-1)
+end
+
+#DERIVADA ANALÍTICA 
+
+function DfA(x)
+    """
+    Esta función es la derivada analítica de la función dada f()
+    """
+    return (((6*x)-8)/((7*x^3)-1)) - ((((3*x^2)-(8*x)+1)*(21*x^2))/((7*x^3)-1)^2)
+end
+
+D_dual = Df(2)    #Derivada hecha usando como argumento a los duales, i.e f(dual(x))
+D_analitica = DfA(2)            #Derivada analítica f'(x)
+
+der(D_dual)-D_analitica
+
 
 # ## Ejercicio 3
 #
