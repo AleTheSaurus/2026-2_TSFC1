@@ -55,7 +55,7 @@ end
 # la documentación de Julia tiene más información sobre esto.
 
 import Base: convert
-convert(::Type{Dual}, x::T) where {T<:Real} = D(x)
+convert(::Type{Dual}, x::T) where {T<:Real} = Dual(x,x)
 
 import Base: +
 +(a::Dual, b::Real) = +(a, convert(Dual, b))
@@ -92,50 +92,45 @@ end
 # implementaron da el resultado que debería ser. Para esto, pueden usar la librería
 # estándard [`Test`](https://docs.julialang.org/en/v1/stdlib/Test/) de Julia.
 
-# Creación del tipo Dual 
-x = Dual(1.5,3.0)
-println(typeof(x))
+#Para comparar, comenzaré definiendo == para duales
 
-#Operaciones aritmeticas con duales
-y = Dual(2.3,2)
-println(x+y)      #suma
-println(typeof(x+y))
-println(x-y)      #resta
-println(typeof(x+y))
-println(x*y)      #multiplicación
-println(typeof(x*y))
-println(x/y)      #división
-println(typeof(x/y))
+Base.:(==)(a::Dual, b::Dual) = a.fun == b.fun && a.der == b.der
 
-#De reales a duales
-d = D(5)
-println(d)
-print(typeof(d))
+using Test
 
-#Extensión de operaciones a Dual-Real y Real-Dual
-println(5+Dual(3,2))            #suma 
-println(typeof(5+Dual(3,2)))
-println(Dual(3,2)+5)
-println(typeof(Dual(3,2)+5))
+@testset "Pruebas Ejercicio 1" begin 
+    x = Dual(2,5)  
+    y = Dual(3,6)
+    
+#Operaciones aritmeticas 
+    @test x+y == Dual(2+3,5+6)
+    @test x-y == Dual(2-3,5-6)
+    @test x*y == Dual(2*3,(2*6)+(5*3))
+    @test x/y == Dual(2/3 , ((5*3)-(2*6))/3^2)
 
-println(5-Dual(3,2))            #resta
-println(typeof(5-Dual(3,2)))
-println(Dual(3,2)-5)
-println(typeof(Dual(3,2)-5))
+#De Reales a duales
+    @test D(3) == Dual(3,0)
 
-println(5*Dual(3,2))            #multiplicación 
-println(typeof(5*Dual(3,2)))
-println(Dual(3,2)*5)
-println(typeof(Dual(3,2)*5))
+#Extensión de operaciones aritmeticas, de rea-dual y dual-real
+    @test 3+x == Dual(3+2,3+5)
+    @test x+3 == Dual(3+2,3+5)
+    @test 3+x == x+3
+    
+    @test 3-x == Dual(3-2,3-5)
+    @test x-3 == Dual(2-3,5-3)
+    
+    @test x*3 == x*Dual(3,3)
+    @test 3*x == Dual(3,3)*x
+    @test x*3 == 3*x
 
-println(5/Dual(3,2))            #división
-println(typeof(5/Dual(3,2)))
-println(Dual(3,2)/5)
-println(typeof(Dual(3,2)/5))
+    @test x/3 == x/Dual(3,3)
+    @test 3/x == Dual(3,3)/x 
 
-#Funciones fun y der 
-fun(x)
-der(x)
+#Funciones fun y der
+    @test fun(x) == 2
+    @test der(x) == 5
+    
+end
 
 # ## Ejercicio 2
 #
@@ -154,8 +149,6 @@ function dual(x)
     """
     return Dual(x,1)
 end
-
-println(dual(5))  #El resultado de la función corresponde con lo esperado
 
 # OBTENIENDO LA DERIVADA DE LA FUNCIÓN 
 
@@ -186,34 +179,51 @@ der(D_dual)-D_analitica
 # - A partir de lo visto en clase, *extiendan* las funciones elementales usuales para que funcionen con Duales, es decir, `sin(a::Dual)`, `cos(a::Dual)`, `tan(a::Dual)`, `^(a::Dual, n::Int)`, `sqrt(a::Dual)`, `exp(a::Dual)` y `log(a::Dual)`.
 
 function Base.:sin(a::Dual)
-    return (sin(a.fun),cos(a.fun)*a.der)
+    return Dual(sin(a.fun),cos(a.fun)*a.der)
 end
 
 function Base.:cos(a::Dual)
-    return (cos(a.fun),-sin(a.fun)*a.der)
+    return Dual(cos(a.fun),-sin(a.fun)*a.der)
 end
 
 function Base.:log(a::Dual)
-    return (log(a.fun),a.der/a.fun)
+    return Dual(log(a.fun),a.der/a.fun)
 end
 
 function Base.:exp(a::Dual)
-    return (exp(a.fun),exp(a.fun)*a.der)
+    return Dual(exp(a.fun),exp(a.fun)*a.der)
 end
 
 function Base.:tan(a::Dual)
-    return (tan(a.fun),(sec(a.fun))^2*a.der)
+    return Dual(tan(a.fun),(sec(a.fun))^2*a.der)
 end
 
 function Base.:^(a::Dual,b::Real)
-    return (a.fun^b,b*((a.fun)^(b-1))*(a.der))
+    return Dual(a.fun^b,b*((a.fun)^(b-1))*(a.der))
 end
 
 function Base.:sqrt(a::Dual)
-    return (sqrt(a.fun),(1/2)*(1/sqrt(a.fun))*a.der)
+    return Dual(sqrt(a.fun),(1/2)*(1/sqrt(a.fun))*a.der)
 end
-
 
 #
 # - Al igual que antes, construyan algún conjunto de pruebas que muestre, de manera
 # sencilla, que lo que hicieron da lo que uno esperaría obtener.
+
+using Test 
+
+Base.:(≈)(a::Dual, b::Dual) = a.fun ≈ b.fun && a.der ≈ b.der
+
+
+@testset "Pruebas ejercicio 3" begin 
+    x = Dual(4,12)
+    
+    @test sin(x) ≈ Dual(sin(4), cos(4)*12 )
+    @test cos(x) ≈ Dual(cos(4),-sin(4)*12)
+    @test log(x) ≈ Dual(log(4), 12/4)
+    @test exp(x) ≈ Dual(exp(4),exp(4)*12)
+    @test tan(x) ≈ Dual(tan(4),(sec(4)^2)*12)
+    @test x^2 == x*x
+    @test x^3 == x*x*x
+    @test sqrt(x) == Dual(sqrt(4),(1/2)*(1/sqrt(4)*12))
+end
